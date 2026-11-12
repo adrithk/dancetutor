@@ -31,6 +31,7 @@ const KIND_TITLE = { learn: 'Learning', join: 'Joining', link: 'Linking', top: '
 export function Practice({ lesson, tracker, settings, onExit }: Props) {
   const [session] = useState(() => new Session({ lesson, mirror: settings.mirror, pace: settings.pace, simulated: !tracker, voice: settings.voice }));
   const state = useSessionState(session);
+  const [showJoints, setShowJoints] = useState(true);
 
   useEffect(() => {
     if (tracker) tracker.listener = session.onPose;
@@ -81,7 +82,7 @@ export function Practice({ lesson, tracker, settings, onExit }: Props) {
         </div>
       </header>
 
-      <Stage session={session} tracker={tracker} />
+      <Stage session={session} tracker={tracker} showJoints={showJoints} />
 
       <div className={`teacher ${state.phase === 'talking' ? 'is-speaking' : ''}`} aria-live="polite">
         <span className="teacher-dot" aria-hidden="true" />
@@ -99,6 +100,11 @@ export function Practice({ lesson, tracker, settings, onExit }: Props) {
           <button onClick={() => session.togglePause()}>{state.phase === 'paused' ? 'Resume' : 'Pause'} <kbd>Space</kbd></button>
           <button onClick={() => session.watchAgain()}>Show me again <kbd>R</kbd></button>
           <button onClick={() => session.skipStep()}>Skip this part <kbd>S</kbd></button>
+          {lesson.videoUrl && (
+            <button aria-pressed={showJoints} onClick={() => setShowJoints(!showJoints)}>
+              {showJoints ? 'Hide' : 'Show'} joints on the video
+            </button>
+          )}
         </div>
       )}
 

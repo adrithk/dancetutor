@@ -5,9 +5,11 @@ interface Props {
   lessons: Lesson[] | null;
   onPick: (lesson: Lesson) => void;
   onReview: (lesson: Lesson) => void;
+  onAdd: () => void;
+  onDelete: (lesson: Lesson) => void;
 }
 
-export function Home({ lessons, onPick, onReview }: Props) {
+export function Home({ lessons, onPick, onReview, onAdd, onDelete }: Props) {
   return (
     <main className="home">
       <header className="hero">
@@ -18,7 +20,12 @@ export function Home({ lessons, onPick, onReview }: Props) {
         </p>
       </header>
       <section>
-        <h2>Routines</h2>
+        <div className="section-head">
+          <h2>Routines</h2>
+          <button className="primary" onClick={onAdd}>
+            Add a routine from a video
+          </button>
+        </div>
         {!lessons && <p className="muted">Loading routines…</p>}
         <ul className="lessons">
           {lessons?.map((l) => {
@@ -32,11 +39,11 @@ export function Home({ lessons, onPick, onReview }: Props) {
                   <h3>{l.title}</h3>
                   <p className="muted">{l.description}</p>
                   <p className="lesson-facts">
-                    <span>{l.level}</span>
+                    {l.level && <span>{l.level}</span>}
                     <span>{l.counts} counts</span>
-                    <span>{l.bpm} bpm</span>
+                    <span>{Math.round(l.bpm)} bpm</span>
                     <span>{seconds} seconds</span>
-                    {!l.videoUrl && <span>Figure reference</span>}
+                    <span>{l.videoUrl ? 'Video' : 'No video'}</span>
                   </p>
                 </div>
                 <div className="lesson-actions">
@@ -46,6 +53,11 @@ export function Home({ lessons, onPick, onReview }: Props) {
                   {attempts > 0 && (
                     <button className="link" onClick={() => onReview(l)}>
                       Your progress ({attempts} attempts)
+                    </button>
+                  )}
+                  {l.source === 'imported' && (
+                    <button className="link" onClick={() => window.confirm(`Remove "${l.title}" and its video from this device?`) && onDelete(l)}>
+                      Remove
                     </button>
                   )}
                 </div>

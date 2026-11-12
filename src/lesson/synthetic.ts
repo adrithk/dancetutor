@@ -173,9 +173,9 @@ export function buildSyntheticLesson(): Lesson {
   return {
     id: 'first-steps',
     title: 'First Steps',
-    style: 'Beginner groove',
+    style: 'Practice figure',
     level: 'Beginner',
-    description: 'Thirty-two counts of clear arm shapes and steps in place. A good first routine.',
+    description: 'An animated figure with no video, for trying the app. Thirty-two counts of arm shapes and steps in place.',
     bpm,
     firstBeatSec,
     counts: ROUTINE.length,
@@ -195,5 +195,6 @@ export function buildSyntheticLesson(): Lesson {
       { count: 32, group: 'right_arm', importance: 'essential', cue: 'Finish big: both arms high and wide.' },
     ],
     poses,
+    source: 'builtin',
   };
 }

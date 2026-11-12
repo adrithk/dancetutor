@@ -34,6 +34,8 @@ export interface LessonMeta {
 export interface Lesson extends LessonMeta {
   poses: PoseTrack;
   videoUrl?: string;
+  /** Added in this browser, shipped in public/lessons, or the built-in practice figure. */
+  source: 'imported' | 'bundled' | 'builtin';
 }
 
 export interface BeatGrid {

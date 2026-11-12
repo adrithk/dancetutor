@@ -16,7 +16,7 @@ Useful links while developing:
 
 - `/?sim=1` practises with a simulated dancer instead of the camera. It makes a few mistakes and improves as the teacher corrects it, so you can work on the app without dancing.
 - `/?sim=1&pace=quick` is the same with fewer repeats. It is a good backup for a live demo.
-- `/builder.html` turns a reference video into a lesson (see below).
+- `/builder.html` exports a routine as files, for sharing it in the repo (see below).
 
 `npm test` runs the coaching-logic tests. `npm run build` typechecks and builds.
 
@@ -41,16 +41,34 @@ The progress strip shows every attempt count by count, and the review screen com
 | Lesson plan | `src/coach/planner.ts` | The add-on method: learn, join, link, from the top, with speed ladder, drills and "come back to it later". |
 | What the teacher says | `src/coach/phrasing.ts` | Sentence templates, spoken with the browser's built-in voice. |
 | Clock and sound | `src/audio/transport.ts` | Plays a range at any speed, keeps the reference video in step, sounds clicks or a drum beat. |
+| Reference tracking | `src/lesson/track.ts` | Tracks the dancer in a reference video, frame by frame, to get the joints to compare against. |
 | Lesson loop | `src/session/session.ts` | Ties it together: watch, count in, record, judge, speak, repeat. |
 
 Thresholds and pacing live in `src/config.ts`.
 
-## Add your own routine
+## Add a routine from a video
 
-1. Film the routine: one dancer, whole body in frame, fixed camera, facing forward.
-2. Open `/builder.html`, choose the video, enter the tempo, the time of count 1 and the number of counts, then process it.
-3. Put the downloaded `lesson.json` and `poses.json` with the video in `public/lessons/<name>/`, and add `"<name>"` to `public/lessons/index.json`.
-4. Add teaching notes to `lesson.json`. Sides are the choreographer's own left and right:
+The teacher on the left is a real video, and every attempt is compared with the joints tracked from it.
+
+1. Film or pick a video: one dancer, whole body in frame, fixed camera, facing forward.
+2. On the home screen choose **Add a routine from a video** and pick the file.
+3. Set the beat. Press **Tap the beat** once to start the video, then tap on every count starting on count 1. Or type the tempo and the time of count 1. **Check the counts** plays the video with a click and a number on each count so you can confirm it lines up.
+4. **Save routine.** The app tracks the dancer's joints through the video (about a minute for a 20-second routine on a laptop) and the routine appears on the home screen.
+
+The video and its joints are stored in that browser only. Nothing is uploaded.
+
+During practice the tracked joints are drawn over the video; a button hides them.
+
+### Sharing a routine with the team
+
+Routines added in the app live in one browser. To ship a routine with the repo so everyone has it:
+
+1. Open `/builder.html`, process the video and download `lesson.json` and `poses.json`.
+2. Put them with the video in `public/lessons/<name>/`, and add `"<name>"` to `public/lessons/index.json`.
+
+### Teaching notes
+
+Routines in `public/lessons` can carry choreographer notes in `lesson.json`. Sides are the choreographer's own left and right:
 
 ```json
 "notes": [
@@ -59,11 +77,12 @@ Thresholds and pacing live in `src/config.ts`.
 ]
 ```
 
-`importance` is `essential` (tight tolerance), `normal`, or `free` (not judged). Groups are `left_arm`, `right_arm`, `left_leg`, `right_leg` and `torso`.
+`importance` is `essential` (tight tolerance), `normal`, or `free` (not judged). Groups are `left_arm`, `right_arm`, `left_leg`, `right_leg` and `torso`. Without notes every limb is judged at the normal tolerance.
 
 ## Not built yet
 
 - A conversational voice model for the teacher (spoken questions such as "which foot?", and voice control of replay and speed). The teacher currently uses templates and the browser's speech.
 - Recorded count clips. The count-in is spoken by the browser's voice, which does not land exactly on the beat.
 - Latency calibration. Camera delay is a fixed estimate in `src/config.ts`.
+- Editing teaching notes inside the app. Routines added from a video have none until you export them and edit `lesson.json`.
 - Turns, floorwork and travelling steps. Tracking assumes one dancer facing a fixed camera.

@@ -8,10 +8,12 @@ import { COLORS, drawFigure, prepareCanvas } from './draw';
 interface Props {
   session: Session;
   tracker: CameraTracker | null;
+  /** Draw the tracked joints over the teacher's video. */
+  showJoints: boolean;
 }
 
 /** The two practice panels: the reference on the left, the dancer on the right. */
-export function Stage({ session, tracker }: Props) {
+export function Stage({ session, tracker, showJoints }: Props) {
   const refCanvas = useRef<HTMLCanvasElement>(null);
   const liveCanvas = useRef<HTMLCanvasElement>(null);
   const liveBox = useRef<HTMLDivElement>(null);
@@ -52,8 +54,10 @@ export function Stage({ session, tracker }: Props) {
         const spot = state.spotlight;
         if (!lesson.videoUrl) {
           drawFigure(rc.ctx, session.refPose(t), rc.h, { color: (g) => (g === spot ? COLORS.spotlight : COLORS.reference) });
-        } else if (spot) {
-          drawFigure(rc.ctx, session.refPose(t), rc.h, { color: (g) => (g === spot ? COLORS.spotlight : 'rgba(0,0,0,0)'), weight: 0.12, alpha: 0.85 });
+        } else if (showJoints || spot) {
+          // The joints every attempt is compared against, drawn on the video they came from.
+          const quiet = showJoints ? COLORS.reference : 'rgba(0,0,0,0)';
+          drawFigure(rc.ctx, session.refPose(t), rc.h, { color: (g) => (g === spot ? COLORS.spotlight : quiet), weight: 0.09, minVisibility: 0.4, outline: true });
         }
       }
 
@@ -88,7 +92,7 @@ export function Stage({ session, tracker }: Props) {
     };
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, [session, tracker, lesson]);
+  }, [session, tracker, lesson, showJoints]);
 
   const refAspect = lesson.poses.aspect;
   const liveAspect = tracker ? tracker.aspect : lesson.poses.aspect;
@@ -98,7 +102,7 @@ export function Stage({ session, tracker }: Props) {
     <div className="stage">
       <section className="panel" aria-label="Reference">
         <div className="panel-box" style={{ aspectRatio: String(refAspect) }}>
-          {lesson.videoUrl && <video ref={refVideo} className={`panel-video ${flipRef ? 'flip' : ''}`} src={lesson.videoUrl} playsInline preload="auto" />}
+          {lesson.videoUrl && <video ref={refVideo} className={`panel-video contain ${flipRef ? 'flip' : ''}`} src={lesson.videoUrl} playsInline preload="auto" />}
           <canvas ref={refCanvas} className={`panel-canvas ${flipRef ? 'flip' : ''}`} />
           <div ref={countEl} className="count" aria-hidden="true" />
           <span className="panel-tag">Teacher</span>

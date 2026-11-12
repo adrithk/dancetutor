@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { loadLessons } from './lesson/load';
+import { deleteImported } from './lesson/store';
 import { Lesson } from './lesson/types';
 import { CameraTracker } from './pose/tracker';
 import { Home } from './ui/Home';
+import { Import } from './ui/Import';
 import { Practice } from './ui/Practice';
 import { Review } from './ui/Review';
 import { Setup } from './ui/Setup';
 import { initialSettings } from './ui/settings';
 
-type Screen = 'home' | 'setup' | 'practice' | 'review';
+type Screen = 'home' | 'import' | 'setup' | 'practice' | 'review';
 
 export function App() {
   const [lessons, setLessons] = useState<Lesson[] | null>(null);
@@ -17,8 +19,9 @@ export function App() {
   const [settings, setSettings] = useState(initialSettings);
   const tracker = useRef<CameraTracker | null>(null);
 
+  const reload = () => loadLessons().then(setLessons);
   useEffect(() => {
-    void loadLessons().then(setLessons);
+    void reload();
   }, []);
 
   const releaseCamera = () => {
@@ -26,6 +29,18 @@ export function App() {
     tracker.current = null;
   };
 
+  if (screen === 'import') {
+    return (
+      <Import
+        onBack={() => setScreen('home')}
+        onDone={(added) => {
+          void reload();
+          setLesson(added);
+          setScreen('setup');
+        }}
+      />
+    );
+  }
   if (screen === 'setup' && lesson) {
     return (
       <Setup
@@ -67,6 +82,8 @@ export function App() {
         setLesson(l);
         setScreen('review');
       }}
+      onAdd={() => setScreen('import')}
+      onDelete={(l) => void deleteImported(l.id).then(reload)}
     />
   );
 }

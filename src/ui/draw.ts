@@ -78,6 +78,17 @@ export function drawFigure(ctx: CanvasRenderingContext2D, pose: Pose, h: number,
     ctx.stroke();
   }
 
+  // Over a camera image, mark each tracked joint with a dot.
+  if (style.outline) {
+    ctx.fillStyle = '#ffffff';
+    for (let j = 1; j < pose.length / 3; j++) {
+      if (pose[j * 3 + 2] < minVis) continue;
+      ctx.beginPath();
+      ctx.arc(pose[j * 3] * s, pose[j * 3 + 1] * s, lw * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
   // Head: a circle above the shoulders, along the line of the spine.
   if (!style.outline) {
     const sh = midShoulder(pose);

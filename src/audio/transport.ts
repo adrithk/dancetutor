@@ -13,6 +13,8 @@ export interface PlayOptions {
   music: boolean;
   /** Beats before this one are a count-in and always get a click. */
   firstDanceBeat: number;
+  /** Click on every beat even while music plays, to check the beat grid against a video. */
+  alwaysClick?: boolean;
   /** Called shortly before each beat sounds, with the milliseconds remaining. */
   onUpcomingBeat?: (beat: number, inMs: number) => void;
 }
@@ -85,7 +87,13 @@ export class Transport {
     this.stop();
     return new Promise((resolve) => {
       const firstBeat = Math.ceil((opts.from - this.grid.firstBeatSec) / beatDur(this.grid) - 1e-6);
-      const p: Playing = { ...opts, perfStart: performance.now() + 60, nextBeat: firstBeat, resolve, timer: 0 };
+      // A video needs a moment to seek to the start point before the clock runs.
+      const lead = this.media ? 250 : 60;
+      const p: Playing = { ...opts, perfStart: performance.now() + lead, nextBeat: firstBeat, resolve, timer: 0 };
+      if (this.media) {
+        this.media.pause();
+        this.media.currentTime = Math.max(0, opts.from);
+      }
       this.playing = p;
       p.timer = window.setInterval(() => this.tick(), 25);
       this.tick();
@@ -144,13 +152,24 @@ export class Transport {
     el.playbackRate = p.rate;
     el.muted = !(p.music && this.mediaHasMusic);
     el.volume = this.volume;
+    const now = performance.now();
+    if (now < p.perfStart) return;
     if (this.mediaTime < 0) {
+      // Count-in before the video begins: hold its first frame.
       if (!el.paused) el.pause();
       if (el.currentTime !== 0) el.currentTime = 0;
       return;
     }
-    if (Math.abs(el.currentTime - t) > 0.12) el.currentTime = t;
-    if (el.paused) void el.play().catch(() => {});
+    if (el.paused) {
+      void el.play().catch(() => {});
+      return;
+    }
+    if (el.seeking) return;
+    // The dancer follows what the video shows and plays, so the clock follows
+    // the video. Nudging the clock avoids the stutter that seeking would cause.
+    const err = el.currentTime - this.mediaTimeAt(now);
+    if (Math.abs(err) > 0.35) el.currentTime = Math.max(0, this.mediaTimeAt(now));
+    else p.perfStart -= ((err * 1000) / p.rate) * 0.2;
   }
 
   // --- sounds ---
@@ -163,7 +182,7 @@ export class Transport {
     const playsOwnMusic = p.music && this.mediaHasMusic;
     if (countIn) {
       this.blip(at, 1480, 0.5);
-    } else if (!p.music) {
+    } else if (!p.music || p.alwaysClick) {
       this.blip(at, beat % 4 === 0 ? 1175 : 880, 0.4);
     } else if (!playsOwnMusic) {
       this.kick(at);
