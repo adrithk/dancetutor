@@ -27,7 +27,9 @@ Useful links while developing:
 4. **Again.** Clean attempts move you up the speed ladder (60%, 80%, full tempo). The same mistake twice starts a slow drill of just those two counts, arms or feet only.
 5. **Build up.** Two four-counts join into an eight, eights link together, and you run from the top until you have the whole routine.
 
-The progress strip shows every attempt count by count, and the review screen compares your first try at each section with your latest.
+A strip under the caption shows your latest attempts count by count: red where it went wrong, green where it was right.
+
+The interface is deliberately bare: a list of dances, then the tutor screen. Keys on the tutor screen: Space pauses, R shows the section again, S skips it, J hides the joints on the video. Options are set in the address: `?pace=quick` (fewer repeats), `?mirror=0` (use the same side as the teacher instead of mirroring), `?voice=0` (captions only), `?sim=1` (simulated dancer).
 
 ## How it works
 
@@ -48,18 +50,18 @@ Thresholds and pacing live in `src/config.ts`.
 
 ## The routine library
 
-The home screen is a library of routines. Each one is a real video, and every attempt is compared with the joints tracked from it. Routines in the library ship with the app, so anyone who opens it can pick one and start.
+The home screen lists the routines in the library. Each one is a real video, and every attempt is compared with the joints tracked from it. Routines in the library ship with the app, so anyone who opens it can pick one and start.
 
 ### Add a routine
 
 1. Get a video: one dancer, whole body in frame, fixed camera, facing forward. A clean 15 to 30 second performance works best. Trim out talking and camera cuts first, and keep the file small (720p is plenty).
-2. Run `npm run dev`, open the app and choose **Add a routine from a video**.
-3. Fill in the name, style, level and an optional credit.
+2. Run `npm run dev`, open the app and choose **Add a dance from a video**.
+3. Give it a name.
 4. Set the beat. Press **Tap the beat** once to start the video, then tap on every count starting on count 1. Or type the tempo and the time of count 1. **Check the counts** plays the video with a click and a number on each count so you can confirm it lines up.
-5. Leave **Add to the app's library** ticked and press **Save routine**. The app tracks the dancer's joints (about a minute for a 20-second routine on a laptop) and writes the routine into `public/lessons/<name>/`.
+5. Leave **Add to the app's library** ticked and press **Save**. The app tracks the dancer's joints (about a minute for a 20-second routine on a laptop) and writes the routine into `public/lessons/<name>/`.
 6. Commit and push `public/lessons`. The routine is now preloaded for everyone.
 
-Untick the box to keep a routine on your own device instead. It is stored in that browser only, and **Add to library** on its card moves it into the library later. Nothing is uploaded anywhere either way.
+Untick the box to keep a routine on your own device instead. It is stored in that browser only, and **add to library** beside it in the list moves it into the library later. Nothing is uploaded anywhere either way.
 
 Saving to the library only works under `npm run dev`, because it writes files into the project. A built or deployed copy of the app shows the library but cannot change it.
 
@@ -71,7 +73,7 @@ During practice the tracked joints are drawn over the video; a button hides them
 public/lessons/
   index.json            list of routine folders
   my-routine/
-    lesson.json         name, style, level, credit, tempo, count 1, counts, notes
+    lesson.json         name, tempo, count 1, counts, notes
     poses.json          the tracked joints for every frame
     video.mp4           the reference video
 ```

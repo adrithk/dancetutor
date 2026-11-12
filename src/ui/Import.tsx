@@ -13,8 +13,6 @@ interface Props {
   onBack: () => void;
 }
 
-const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
-
 /** Add a routine from a video: set the beat, then track the dancer's joints. */
 export function Import({ taken, onDone, onBack }: Props) {
   const video = useRef<HTMLVideoElement>(null);
@@ -26,9 +24,6 @@ export function Import({ taken, onDone, onBack }: Props) {
   const [duration, setDuration] = useState(0);
   const [aspect, setAspect] = useState(16 / 9);
   const [title, setTitle] = useState('');
-  const [style, setStyle] = useState('');
-  const [level, setLevel] = useState(LEVELS[0]);
-  const [credit, setCredit] = useState('');
   const [canShare, setCanShare] = useState(false);
   const [share, setShare] = useState(true);
   const [bpm, setBpm] = useState(100);
@@ -134,10 +129,9 @@ export function Import({ taken, onDone, onBack }: Props) {
       const meta: LessonMeta = {
         id: `video-${Date.now()}`,
         title: title.trim() || 'My routine',
-        style: style.trim() || 'Dance',
-        level,
+        style: 'Video',
+        level: '',
         description: '',
-        credit: credit.trim() || undefined,
         bpm,
         firstBeatSec: first,
         counts,
@@ -154,15 +148,15 @@ export function Import({ taken, onDone, onBack }: Props) {
   const busy = progress !== null;
   const tooLong = duration > 0 && first + counts * beat > duration + beat * 0.5;
   return (
-    <main className="setup">
+    <main className="page wide">
       <button className="link" onClick={onBack} disabled={busy}>
-        ← Routines
+        ← Dances
       </button>
-      <h1>Add a routine from a video</h1>
+      <h1>Add a dance from a video</h1>
       <p className="muted">
         Use a video of one dancer, whole body in frame, facing a camera that does not move. It stays on this device.
       </p>
-      <div className="setup-grid">
+      <div className="two">
         <div className="panel-box" style={{ aspectRatio: String(aspect) }}>
           {url ? (
             <video
@@ -182,7 +176,7 @@ export function Import({ taken, onDone, onBack }: Props) {
           <canvas ref={canvas} className="panel-canvas" style={{ pointerEvents: 'none' }} />
           <div ref={countEl} className="count" aria-hidden="true" />
         </div>
-        <div className="setup-side">
+        <div className="side">
           <label className="field">
             Video
             <input type="file" accept="video/*" disabled={busy} onChange={(e) => choose(e.target.files?.[0])} />
@@ -192,24 +186,6 @@ export function Import({ taken, onDone, onBack }: Props) {
               <label className="field">
                 Name
                 <input type="text" value={title} disabled={busy} onChange={(e) => setTitle(e.target.value)} />
-              </label>
-              <div className="row">
-                <label className="field">
-                  Style
-                  <input type="text" value={style} placeholder="Hip hop, K-pop, salsa…" disabled={busy} onChange={(e) => setStyle(e.target.value)} />
-                </label>
-                <label className="field">
-                  Level
-                  <select value={level} disabled={busy} onChange={(e) => setLevel(e.target.value)}>
-                    {LEVELS.map((l) => (
-                      <option key={l}>{l}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <label className="field">
-                Credit <span className="muted">(choreographer or source, optional)</span>
-                <input type="text" value={credit} disabled={busy} onChange={(e) => setCredit(e.target.value)} />
               </label>
               <fieldset disabled={busy}>
                 <legend>Where are the counts?</legend>
@@ -262,13 +238,11 @@ export function Import({ taken, onDone, onBack }: Props) {
               {canShare && (
                 <label className="toggle">
                   <input type="checkbox" checked={share} disabled={busy} onChange={(e) => setShare(e.target.checked)} />
-                  <span>
-                    Add to the app's library <small className="muted">Saved into the project so it is preloaded for everyone. Untick to keep it on this device only.</small>
-                  </span>
+                  <span>Add to the app's library (preloaded for everyone). Untick to keep it on this device only.</span>
                 </label>
               )}
               <button className="primary big" disabled={busy || tooLong} onClick={save}>
-                {busy ? `Tracking the dancer… ${Math.round((progress ?? 0) * 100)}%` : 'Save routine'}
+                {busy ? `Tracking the dancer… ${Math.round((progress ?? 0) * 100)}%` : 'Save'}
               </button>
               {busy && <progress value={progress ?? 0} max={1} />}
             </>

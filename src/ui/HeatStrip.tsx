@@ -27,7 +27,6 @@ export function HeatStrip({ attempts, from, to, limit = 6, labels }: Props) {
         ))}
         <span className="heat-end" />
       </div>
-      {shown.length === 0 && <div className="heat-empty">Your attempts will appear here.</div>}
       {shown.map((a, i) => (
         <div key={i} className="heat-row" role="row">
           <span className="heat-label">

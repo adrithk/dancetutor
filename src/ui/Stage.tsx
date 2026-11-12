@@ -105,13 +105,11 @@ export function Stage({ session, tracker, showJoints }: Props) {
           {lesson.videoUrl && <video ref={refVideo} className={`panel-video contain ${flipRef ? 'flip' : ''}`} src={lesson.videoUrl} playsInline preload="auto" />}
           <canvas ref={refCanvas} className={`panel-canvas ${flipRef ? 'flip' : ''}`} />
           <div ref={countEl} className="count" aria-hidden="true" />
-          <span className="panel-tag">Teacher</span>
         </div>
       </section>
       <section className="panel" aria-label="You">
-        <div ref={liveBox} className={`panel-box selfie ${tracker ? '' : 'is-sim'}`} style={{ aspectRatio: String(liveAspect) }}>
+        <div ref={liveBox} className="panel-box selfie" style={{ aspectRatio: String(liveAspect) }}>
           <canvas ref={liveCanvas} className="panel-canvas" />
-          <span className="panel-tag">{tracker ? 'You' : 'You (simulated)'}</span>
         </div>
       </section>
     </div>

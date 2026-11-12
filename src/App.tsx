@@ -1,33 +1,29 @@
-import { useEffect, useRef, useState } from 'react';
-import { loadLessons } from './lesson/load';
+import { useEffect, useState } from 'react';
 import { removeFromLibrary, saveToLibrary } from './lesson/library';
+import { loadLessons } from './lesson/load';
 import { deleteImported, getImported } from './lesson/store';
 import { Lesson } from './lesson/types';
-import { CameraTracker } from './pose/tracker';
 import { Home } from './ui/Home';
 import { Import } from './ui/Import';
 import { Practice } from './ui/Practice';
-import { Review } from './ui/Review';
-import { Setup } from './ui/Setup';
 import { initialSettings } from './ui/settings';
 
-type Screen = 'home' | 'import' | 'setup' | 'practice' | 'review';
+type Screen = 'home' | 'import' | 'practice';
 
 export function App() {
   const [lessons, setLessons] = useState<Lesson[] | null>(null);
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [screen, setScreen] = useState<Screen>('home');
-  const [settings, setSettings] = useState(initialSettings);
-  const tracker = useRef<CameraTracker | null>(null);
+  const [settings] = useState(initialSettings);
 
   const reload = () => loadLessons().then(setLessons);
   useEffect(() => {
     void reload();
   }, []);
 
-  const releaseCamera = () => {
-    tracker.current?.stop();
-    tracker.current = null;
+  const practise = (l: Lesson) => {
+    setLesson(l);
+    setScreen('practice');
   };
 
   if (screen === 'import') {
@@ -37,53 +33,18 @@ export function App() {
         onBack={() => setScreen('home')}
         onDone={(added) => {
           void reload();
-          setLesson(added);
-          setScreen('setup');
-        }}
-      />
-    );
-  }
-  if (screen === 'setup' && lesson) {
-    return (
-      <Setup
-        lesson={lesson}
-        settings={settings}
-        onChange={setSettings}
-        onBack={() => setScreen('home')}
-        onStart={(t) => {
-          tracker.current = t;
-          setScreen('practice');
+          practise(added);
         }}
       />
     );
   }
   if (screen === 'practice' && lesson) {
-    return (
-      <Practice
-        lesson={lesson}
-        tracker={tracker.current}
-        settings={settings}
-        onExit={(attempts) => {
-          releaseCamera();
-          setScreen(attempts.length > 0 ? 'review' : 'home');
-        }}
-      />
-    );
-  }
-  if (screen === 'review' && lesson) {
-    return <Review lesson={lesson} onBack={() => setScreen('home')} onPractise={() => setScreen('setup')} />;
+    return <Practice key={lesson.id} lesson={lesson} settings={settings} onExit={() => setScreen('home')} />;
   }
   return (
     <Home
       lessons={lessons}
-      onPick={(l) => {
-        setLesson(l);
-        setScreen('setup');
-      }}
-      onReview={(l) => {
-        setLesson(l);
-        setScreen('review');
-      }}
+      onPick={practise}
       onAdd={() => setScreen('import')}
       onDelete={(l) => void (l.source === 'bundled' ? removeFromLibrary(l.id) : deleteImported(l.id)).then(reload)}
       onShare={async (l) => {
