@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { loadLessons } from './lesson/load';
-import { deleteImported } from './lesson/store';
+import { removeFromLibrary, saveToLibrary } from './lesson/library';
+import { deleteImported, getImported } from './lesson/store';
 import { Lesson } from './lesson/types';
 import { CameraTracker } from './pose/tracker';
 import { Home } from './ui/Home';
@@ -32,6 +33,7 @@ export function App() {
   if (screen === 'import') {
     return (
       <Import
+        taken={(lessons ?? []).map((l) => l.id)}
         onBack={() => setScreen('home')}
         onDone={(added) => {
           void reload();
@@ -83,7 +85,15 @@ export function App() {
         setScreen('review');
       }}
       onAdd={() => setScreen('import')}
-      onDelete={(l) => void deleteImported(l.id).then(reload)}
+      onDelete={(l) => void (l.source === 'bundled' ? removeFromLibrary(l.id) : deleteImported(l.id)).then(reload)}
+      onShare={async (l) => {
+        // Copy the routine into the library, then drop the device-only copy.
+        const stored = await getImported(l.id);
+        if (!stored) return;
+        await saveToLibrary(stored.meta, stored.poses, stored.video, stored.meta.video ?? 'video.mp4', (lessons ?? []).map((x) => x.id));
+        await deleteImported(l.id);
+        await reload();
+      }}
     />
   );
 }

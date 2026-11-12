@@ -64,3 +64,9 @@ export async function listImported(): Promise<Lesson[]> {
 export async function deleteImported(id: string): Promise<void> {
   await run('readwrite', (s) => s.delete(id));
 }
+
+/** Everything stored for one routine, for copying it into the shared library. */
+export async function getImported(id: string): Promise<{ meta: LessonMeta; poses: PoseTrack; video: Blob } | null> {
+  const s = await run<StoredLesson | undefined>('readonly', (store) => store.get(id));
+  return s ? { meta: s.meta, poses: s.poses, video: s.video } : null;
+}

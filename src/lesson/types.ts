@@ -18,6 +18,8 @@ export interface LessonMeta {
   style: string;
   level: string;
   description: string;
+  /** Who choreographed or published the video, shown on the routine's card. */
+  credit?: string;
   bpm: number;
   /** Media time, in seconds, of count 1. */
   firstBeatSec: number;

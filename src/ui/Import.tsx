@@ -1,17 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import { Transport } from '../audio/transport';
+import { libraryWritable, saveToLibrary } from '../lesson/library';
 import { saveImported } from '../lesson/store';
 import { fitBeat, trackVideo } from '../lesson/track';
 import { Lesson, LessonMeta, countInPhrase } from '../lesson/types';
 import { COLORS, drawFigure, prepareCanvas } from './draw';
 
 interface Props {
+  /** Ids already in use, so a new library routine gets its own folder name. */
+  taken: string[];
   onDone: (lesson: Lesson) => void;
   onBack: () => void;
 }
 
+const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
+
 /** Add a routine from a video: set the beat, then track the dancer's joints. */
-export function Import({ onDone, onBack }: Props) {
+export function Import({ taken, onDone, onBack }: Props) {
   const video = useRef<HTMLVideoElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const countEl = useRef<HTMLDivElement>(null);
@@ -21,6 +26,11 @@ export function Import({ onDone, onBack }: Props) {
   const [duration, setDuration] = useState(0);
   const [aspect, setAspect] = useState(16 / 9);
   const [title, setTitle] = useState('');
+  const [style, setStyle] = useState('');
+  const [level, setLevel] = useState(LEVELS[0]);
+  const [credit, setCredit] = useState('');
+  const [canShare, setCanShare] = useState(false);
+  const [share, setShare] = useState(true);
   const [bpm, setBpm] = useState(100);
   const [first, setFirst] = useState(0);
   const [counts, setCounts] = useState(32);
@@ -31,6 +41,9 @@ export function Import({ onDone, onBack }: Props) {
   const [message, setMessage] = useState('');
 
   useEffect(() => () => transport.current?.stop(), []);
+  useEffect(() => {
+    void libraryWritable().then(setCanShare);
+  }, []);
   useEffect(() => () => void (url && URL.revokeObjectURL(url)), [url]);
 
   // Suggest the number of counts that fit after count 1, in whole eights.
@@ -121,16 +134,17 @@ export function Import({ onDone, onBack }: Props) {
       const meta: LessonMeta = {
         id: `video-${Date.now()}`,
         title: title.trim() || 'My routine',
-        style: 'Your video',
-        level: '',
+        style: style.trim() || 'Dance',
+        level,
         description: '',
+        credit: credit.trim() || undefined,
         bpm,
         firstBeatSec: first,
         counts,
         notes: [],
         video: file.name,
       };
-      onDone(await saveImported(meta, poses, file));
+      onDone(canShare && share ? await saveToLibrary(meta, poses, file, file.name, taken) : await saveImported(meta, poses, file));
     } catch (e) {
       setMessage(`Could not process the video: ${e instanceof Error ? e.message : String(e)}`);
       setProgress(null);
@@ -178,6 +192,24 @@ export function Import({ onDone, onBack }: Props) {
               <label className="field">
                 Name
                 <input type="text" value={title} disabled={busy} onChange={(e) => setTitle(e.target.value)} />
+              </label>
+              <div className="row">
+                <label className="field">
+                  Style
+                  <input type="text" value={style} placeholder="Hip hop, K-pop, salsa…" disabled={busy} onChange={(e) => setStyle(e.target.value)} />
+                </label>
+                <label className="field">
+                  Level
+                  <select value={level} disabled={busy} onChange={(e) => setLevel(e.target.value)}>
+                    {LEVELS.map((l) => (
+                      <option key={l}>{l}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <label className="field">
+                Credit <span className="muted">(choreographer or source, optional)</span>
+                <input type="text" value={credit} disabled={busy} onChange={(e) => setCredit(e.target.value)} />
               </label>
               <fieldset disabled={busy}>
                 <legend>Where are the counts?</legend>
@@ -227,6 +259,14 @@ export function Import({ onDone, onBack }: Props) {
                 </div>
                 {tooLong && <p className="warn-text">That is more counts than the video has. Reduce the counts or check the tempo.</p>}
               </fieldset>
+              {canShare && (
+                <label className="toggle">
+                  <input type="checkbox" checked={share} disabled={busy} onChange={(e) => setShare(e.target.checked)} />
+                  <span>
+                    Add to the app's library <small className="muted">Saved into the project so it is preloaded for everyone. Untick to keep it on this device only.</small>
+                  </span>
+                </label>
+              )}
               <button className="primary big" disabled={busy || tooLong} onClick={save}>
                 {busy ? `Tracking the dancer… ${Math.round((progress ?? 0) * 100)}%` : 'Save routine'}
               </button>

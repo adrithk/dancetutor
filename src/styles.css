@@ -168,28 +168,51 @@ kbd {
   padding: 0;
   margin: 0.75rem 0 0;
   display: grid;
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 1rem;
 }
 
 .lesson {
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem 2rem;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 1.2rem 1.3rem;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: #000;
+}
+
+.thumb-none {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  aspect-ratio: 4 / 1;
+  background: var(--surface-2);
+}
+
+.lesson-body {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.9rem 1rem 1rem;
 }
 
 .lesson h3 {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
+  line-height: 1.2;
 }
 
 .lesson-style {
   color: var(--accent);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -198,8 +221,8 @@ kbd {
 .lesson-facts {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.7rem;
+  gap: 0.35rem;
+  margin: 0.3rem 0 0.4rem;
 }
 
 .lesson-facts span,
@@ -213,9 +236,18 @@ kbd {
 }
 
 .lesson-actions {
-  display: grid;
-  gap: 0.3rem;
-  justify-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.9rem;
+}
+
+.empty {
+  color: var(--muted);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  margin-top: 0.75rem;
 }
 
 /* ---------- Panels (camera and reference) ---------- */
@@ -329,6 +361,10 @@ legend {
   padding: 0 0.4em;
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+.toggle small {
+  display: block;
 }
 
 fieldset label,
@@ -749,7 +785,8 @@ fieldset label.field {
 }
 
 .field input[type='text'],
-.field input[type='number'] {
+.field input[type='number'],
+.field select {
   font: inherit;
   font-size: 1rem;
   color: var(--text);
